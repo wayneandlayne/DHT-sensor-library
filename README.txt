@@ -1,6 +1,8 @@
-# This is an Arduino library for the DHT series of low cost temperature/humidity sensors. #
+This is an Arduino library for the DHT series of low cost temperature/humidity sensors.
+=======================================================================================
 
-## IMPORTANT: You must rename this folder to be "DHT" instead of "DHT-sensor-library", otherwise it won't work with the Arduino software! ##
+IMPORTANT: You must rename this folder to be "DHT" instead of "DHT-sensor-library", otherwise it won't work with the Arduino software!
+--------------------------------------------------------------------------------------------------------------------------------------
 
 To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder DHT. Check that the DHT folder contains DHT.cpp and DHT.h. Place the DHT library folder your <arduinosketchfolder>/libraries/ folder. You may need to create the libraries subfolder if its your first library. Restart the IDE.
 
