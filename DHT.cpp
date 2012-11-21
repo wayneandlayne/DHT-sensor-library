@@ -2,6 +2,7 @@
 
 MIT license
 written by Adafruit Industries
+Modified by Matthew Beckler and Adam Wolf of Wayne and Layne, LLC to work better in a data logging context.
 */
 
 #include "DHT.h"
@@ -9,96 +10,76 @@ written by Adafruit Industries
 DHT::DHT(uint8_t pin, uint8_t type) {
   _pin = pin;
   _type = type;
-  firstreading = true;
 }
 
 void DHT::begin(void) {
   // set up the pins!
   pinMode(_pin, INPUT);
   digitalWrite(_pin, HIGH);
-  _lastreadtime = 0;
 }
 
 //boolean S == Scale.  True == Farenheit; False == Celcius
+// Be sure to call read() before calling this function!
 float DHT::readTemperature(bool S) {
   float f;
 
-  if (read()) {
-    switch (_type) {
+  switch (_type) {
     case DHT11:
       f = data[2];
-      if(S)
+      if (S)
       	f = convertCtoF(f);
-      	
       return f;
+
     case DHT22:
     case DHT21:
+    default:
       f = data[2] & 0x7F;
       f *= 256;
       f += data[3];
       f /= 10;
       if (data[2] & 0x80)
 	f *= -1;
-      if(S)
+      if (S)
 	f = convertCtoF(f);
-
       return f;
-    }
   }
-  Serial.print("Read fail");
-  return NAN;
 }
 
 float DHT::convertCtoF(float c) {
 	return c * 9 / 5 + 32;
 }
 
+// Be sure to call read() before calling this function!
 float DHT::readHumidity(void) {
   float f;
-  if (read()) {
-    switch (_type) {
+  switch (_type) {
     case DHT11:
       f = data[0];
       return f;
     case DHT22:
     case DHT21:
+    default:
       f = data[0];
       f *= 256;
       f += data[1];
       f /= 10;
       return f;
-    }
   }
-  Serial.print("Read fail");
-  return NAN;
 }
 
-
-boolean DHT::read(void) {
+// Call this when you wake from sleep to fetch the latest reading
+// Return value: True = success, False = failure
+bool DHT::read(void) {
   uint8_t laststate = HIGH;
   uint8_t counter = 0;
   uint8_t j = 0, i;
-  unsigned long currenttime;
 
   // pull the pin high and wait 250 milliseconds
   digitalWrite(_pin, HIGH);
   delay(250);
 
-  currenttime = millis();
-  if (currenttime < _lastreadtime) {
-    // ie there was a rollover
-    _lastreadtime = 0;
-  }
-  if (!firstreading && ((currenttime - _lastreadtime) < 2000)) {
-    return true; // return last correct measurement
-    //delay(2000 - (currenttime - _lastreadtime));
-  }
-  firstreading = false;
-  /*
-    Serial.print("Currtime: "); Serial.print(currenttime);
-    Serial.print(" Lasttime: "); Serial.print(_lastreadtime);
-  */
-  _lastreadtime = millis();
+  // Wayne and Layne removed code here to ensure that we only sample every two seconds
+  // since that is handled by the datalogging code
 
   data[0] = data[1] = data[2] = data[3] = data[4] = 0;
   
@@ -123,14 +104,17 @@ boolean DHT::read(void) {
     }
     laststate = digitalRead(_pin);
 
-    if (counter == 255) break;
+    if (counter == 255) {
+        break;
+    }
 
     // ignore first 3 transitions
     if ((i >= 4) && (i%2 == 0)) {
       // shove each bit into the storage bytes
       data[j/8] <<= 1;
-      if (counter > 6)
+      if (counter > 6) {
         data[j/8] |= 1;
+      }
       j++;
     }
 

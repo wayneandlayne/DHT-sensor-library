@@ -1,5 +1,7 @@
 // Example testing sketch for various DHT humidity/temperature sensors
 // Written by ladyada, public domain
+// Modified by Matthew Beckler and Adam Wolf of Wayne and Layne, LLC,
+// to work better in a data logging situation.
 
 #include "DHT.h"
 
@@ -26,14 +28,15 @@ void setup() {
 
 void loop() {
   // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
+  if (!dht.read()) // this updates the data, and assumes that at least 2 seconds has passed since last call
+  {
+      Serial.println("Failed to read from DHT");
+  }
+  else
+  {
+    float h = dht.readHumidity();
+    float t = dht.readTemperature();
 
-  // check if returns are valid, if they are NaN (not a number) then something went wrong!
-  if (isnan(t) || isnan(h)) {
-    Serial.println("Failed to read from DHT");
-  } else {
     Serial.print("Humidity: "); 
     Serial.print(h);
     Serial.print(" %\t");
@@ -41,4 +44,10 @@ void loop() {
     Serial.print(t);
     Serial.println(" *C");
   }
+
+  // Go to sleep for a while - Here we just pretend to sleep by delaying for five seconds
+  Serial.println("Good night!");
+  delay(5000); // replace with your "go to sleep" code
+  Serial.println("Good morning!");
 }
+
